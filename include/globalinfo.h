@@ -30,6 +30,8 @@ typedef struct cinema
 } CinemaRoomInfo;
 
 extern char send_msg[1024];
+extern int list_client[1024];//应该用链表存储
+extern int client_count;
 extern pthread_mutex_t database_lock;
 extern pthread_mutex_t global_lock;
 extern pthread_cond_t global_cond;

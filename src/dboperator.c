@@ -13,7 +13,7 @@ int searchUserCallback(void *para, int f_num, char **f_value, char **f_name)
     strcpy(user->password, f_value[2]);
     user->remain_money = atof(f_value[3]);
     user->is_manager = atoi(f_value[4]);
-    UserInfo **temp = (UserInfo**)para;
+    UserInfo **temp = (UserInfo **)para;
     *temp = user;
     return 0;
 }
@@ -29,43 +29,36 @@ int openDatabase(char *filename, sqlite3 **pp_db)
     return 0;
 }
 
-int getAllDataFromTable(sqlite3 *p_db, char *s_sql, char *errmsg, char **result)
+int getAllDataFromTable(sqlite3 *p_db, char *s_sql, char ***result, int *rows, int *columns)
 {
-    int rows, columns;
-    int rc = sqlite3_get_table(p_db, "SELECT * from UserInfo WHERE Name = 'LiuLin';", &result, &rows, &columns, &errmsg);
+    char *errmsg;
+    int rc = sqlite3_get_table(p_db, s_sql, result, rows, columns, &errmsg);
     if (rc != SQLITE_OK)
     {
         fprintf(stderr, "SQL error: %s\n", errmsg);
         sqlite3_free(errmsg);
+        return -1;
     }
-    else
-    {
-        /* 打印结果 */
-        for (int i = 0; i <= rows; i++)
-        {
-            for (int j = 0; j < columns; j++)
-            {
-                printf("%s ", result[i * columns + j]);
-            }
-            printf("\n");
-        }
-        /* 释放结果数组 */
-        sqlite3_free_table(result);
-    }
+    return 0;
 }
 
-int execSql(sqlite3 *p_db, char *s_sql, char **ps_errmsg, int is_search, void **search_rst)
+int execSql(sqlite3 *p_db, char *s_sql, int is_search, void **search_rst)
 {
+    char *errmsg;
     int ret;
     if (!is_search)
     {
-        ret = sqlite3_exec(p_db, s_sql, NULL, NULL, ps_errmsg);
+        ret = sqlite3_exec(p_db, s_sql, NULL, NULL, &errmsg);
         if (ret != SQLITE_OK)
+        {
+            fprintf(stderr, "SQL error: %s\n", errmsg);
+            sqlite3_free(errmsg);
             return -1;
+        }
     }
     else
     {
-        ret = sqlite3_exec(p_db, s_sql, &searchUserCallback, (void*)search_rst, ps_errmsg);
+        ret = sqlite3_exec(p_db, s_sql, &searchUserCallback, (void *)search_rst, &errmsg);
         if (ret < 0)
             return -1;
     }
